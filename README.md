@@ -79,7 +79,7 @@ Exploratory data analysis is done to answer the listed questions and aims of thi
  * 2.Which of the customer types brings the most revenue?
  * 3.Which city has the largest tax percent/ VAT (Value Added Tax)?
  4.Which customer type pays the most in VAT?
- Customer
+ ### **Customer**
  * 5.How many unique customer types does the data have?
  * 6.How many unique payment methods does the data have?
  * 7.What is the most common customer type?
