@@ -74,3 +74,19 @@ Exploratory data analysis is done to answer the listed questions and aims of thi
   * 10.Which branch sold more products than average product sold?
   * 11.What is the most common product line by gender?
   * 12.What is the average rating of each product line?
+### **Sales**
+ * 1.Number of sales made in each time of the day per weekday
+ * 2.Which of the customer types brings the most revenue?
+ * 3.Which city has the largest tax percent/ VAT (Value Added Tax)?
+ 4.Which customer type pays the most in VAT?
+ Customer
+ * 5.How many unique customer types does the data have?
+ * 6.How many unique payment methods does the data have?
+ * 7.What is the most common customer type?
+ * 8.Which customer type buys the most?
+ * 9.What is the gender of most of the customers?
+ * 10.What is the gender distribution per branch?
+ * 11.Which time of the day do customers give most ratings?
+ * 12.Which time of the day do customers give most ratings per branch?
+ * 13.Which day fo the week has the best avg ratings?
+ * 14.Which day of the week has the best average ratings per branch?
