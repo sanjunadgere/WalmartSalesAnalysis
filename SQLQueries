@@ -1,1 +1,278 @@
+-- Create database
+CREATE DATABASE IF NOT EXISTS walmartSales;
+use walmartSales;
 
+-- Create table
+CREATE TABLE IF NOT EXISTS sales(
+	invoice_id VARCHAR(30) NOT NULL PRIMARY KEY,
+    branch VARCHAR(5) NOT NULL,
+    city VARCHAR(30) NOT NULL,
+    customer_type VARCHAR(30) NOT NULL,
+    gender VARCHAR(30) NOT NULL,
+    product_line VARCHAR(100) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    tax_pct FLOAT(6,4) NOT NULL,
+    total DECIMAL(12, 4) NOT NULL,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
+    payment VARCHAR(15) NOT NULL,
+    cogs DECIMAL(10,2) NOT NULL,
+    gross_margin_pct FLOAT(11,9),
+    gross_income DECIMAL(12, 4),
+    rating FLOAT(2, 1)
+);
+select * from sales;
+
+
+-- feature engineering --
+-- time_of_ day --;
+
+SELECT
+	time,
+	(CASE
+		WHEN `time` BETWEEN "00:00:00" AND "12:00:00" THEN "Morning"
+        WHEN `time` BETWEEN "12:01:00" AND "16:00:00" THEN "Afternoon"
+        ELSE "Evening"
+    END) AS time_of_day
+FROM sales;
+
+alter table sales add column time_of_day varchar(20);
+
+update sales 
+set time_of_day = ( case 
+    when `time` BETWEEN "00:00:00" AND "12:00:00" THEN "Morning"
+    when `time` BETWEEN "12:01:00" AND "16:00:00" THEN " Afternoon " 
+    else "Evening" 
+    End);
+
+------- DAY_NAME -------------------
+
+SELECT DATE,
+DAYNAME(DATE) 
+FROM SALES;
+
+ALTER TABLE SALES ADD COLUMN DAYNAME VARCHAR(15) ;
+SELECT * FROM SALES;
+
+UPDATE  SALES SET DAYNAME = DAYNAME(DATE);
+
+
+------- MONTH_NAME --------------------------
+
+SELECT MONTHNAME(DATE) FROM SALES;
+
+ALTER TABLE SALES ADD COLUMN MONTH_NAME VARCHAR(15) ;
+
+UPDATE SALES 
+SET MONTH_NAME = monthname(DATE);
+
+SELECT * FROM SALES;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------
+-- -----------------------GENERIC QUESTIONS  ----------------------------------------------------------------------------------------
+-- -- question 1. & 2 
+SELECT distinct(city) from sales ;
+
+SELECT distinct city ,branch from sales ;
+
+-- ----------------------------------------------------------------------------------------------------------------------------------------
+-- ---------------------PRODUCT -----------------------------------------------------------------------------------------------------------
+
+-- --- QUESTION 1.
+
+SELECT DISTINCT(product_line) from sales;
+
+-- question 2.
+
+SELECT payment, count(payment) from sales group by payment order by 2 desc limit 1;
+
+
+-- - question 3.
+
+SELECT  product_line,count(quantity) from sales group by  product_line order by 2 desc limit 1;
+
+-- - question 4
+SELECT MONTH_NAME ,SUM(total) as total_revenue
+FROM sales GROUP BY  MONTH_NAME ORDER BY 2 DESC;
+
+
+-- - question 5 ---------------------------------------------------------------------
+
+SELECT MONTH_NAME , SUM(cogs)  
+FROM sales GROUP BY MONTH_NAME ORDER BY 2 DESC ;
+
+-- - question 6 ---------------------------------------------------------------------
+SELECT product_line , SUM(total) AS TOTAL_REVENUE FROM SALES 
+GROUP BY product_line ORDER BY 2 DESC ;
+
+
+-- - question 7 ---------------------------------------------------------------------
+
+SELECT city , SUM(total) AS TOTAL_REVENUE FROM SALES 
+GROUP BY city ORDER BY 2 DESC ;
+
+-- - question 8 ---------------------------------------------------------------------
+
+SELECT product_line, AVG(tax_pct) as AVG_TAX
+FROM SALES 
+GROUP BY product_line
+ORDER BY 2 DESC LIMIT 1 ;
+
+
+
+-- - question 8 ---------------------------------------------------------------------
+WITH GOOD_OR_BAD
+AS (SELECT  
+	product_line,AVG(total) as AVG_SALE
+	FROM SALES 
+	GROUP BY product_line)
+SELECT *,
+	 CASE 
+	   WHEN `AVG_SALE` > (SELECT AVG(total) from sales) THEN  'GOOD' 
+	   ELSE 'BAD'
+	   END AS 'NOTE'
+FROM GOOD_OR_BAD; 
+
+-- - question 9 ---------------------------------------------------------------------
+
+SELECT branch, SUM( quantity)  as TOTAL_QTY_SOLD
+FROM SALES
+GROUP BY branch
+HAVING SUM(quantity) > (SELECT AVG(quantity) FROM SALES); 
+
+
+-- - question 10 ---------------------------------------------------------------------
+
+SELECT product_line , COUNT(gender) as count_gender
+FROM SALES 
+GROUP BY product_line
+ORDER BY 2 DESC LIMIT 1 ;
+
+-- - question 11 ---------------------------------------------------------------------
+
+SELECT product_line, AVG(rating) AS AVG_RATING
+FROM SALES 
+GROUP BY product_line 
+ORDER BY 2 DESC ;
+
+-- -----------------------------------------------------------------------------------------------------------------------------------------
+--    ----------------------------SALES ----------------------------------------------------------------------------------------------
+-- ---quetion 1 .
+SELECT DAYNAME,time_of_day,count(time_of_day) as total_cnts,
+max(time_of_day) over(partition by DAYNAME order by DAYNAME) as 'sales_time'
+FROM SALES
+group by DAYNAME,time_of_day;
+
+
+-- ---quetion 2 .-----------------------------------------------------
+SELECT 
+customer_type,SUM(total)  AS TOTAL_REVENUE 
+FROM SALES
+GROUP BY customer_type
+ORDER BY 2 DESC;
+
+-- ---quetion 3 .-----------------------------------------------------
+
+SELECT city, AVG(tax_pct) as 'AVERAGE_tax'
+FROM SALES
+GROUP BY city 
+ORDER BY 2 DESC;
+
+-- ---quetion 4 .-----------------------------------------------------
+
+SELECT customer_type, format(AVG(tax_pct),2) as 'AVERAGE_tax'
+FROM SALES
+GROUP BY customer_type
+ORDER BY 2 DESC;
+
+
+-- --------------------------------------------------------------------------------------------------------------------------------------
+-- ------------------------------------------------CUSTOMER  .-----------------------------------------------------
+
+-- ----- question 1 --------------------------------------
+SELECT distinct(customer_type) from sales;
+
+-- ----- question 2 --------------------------------------
+SELECT distinct(payment) from sales;
+
+
+-- ----- question 3 --------------------------------------
+SELECT customer_type,SUM(total) as total_sales
+from sales
+GROUP BY customer_type
+ORDER BY 2 DESC;
+
+-- ----- question 4 --------------------------------------
+SELECT customer_type,count(quantity) as total_qty 
+from sales
+GROUP BY customer_type
+ORDER BY 2 DESC;
+
+
+-- ----- question 5 --------------------------------------
+SELECT gender,count(gender)as gender from sales 
+group by gender 
+order by 2 desc ;
+
+-- ----- question 6 --------------------------------------
+SELECT branch ,gender,count(gender)as gender from sales 
+group by gender,branch 
+order by 2 desc ;
+
+
+-- -- advanced ansewer
+
+with branch_contribution
+as 
+    (select branch,gender,count(gender) as 'gender_counts',
+	max(gender) over (partition by branch order by gender desc) as rn
+	from sales 
+	group by branch, gender)
+select branch, gender,gender_counts from branch_contribution ;
+
+
+-- ----- question 6 --------------------------------------
+
+SELECT time_of_day,count(rating ) as count_rating
+from sales
+group by time_of_day
+order  by 2 desc;
+
+
+-- ----- question 8 --------------------------------------
+
+SELECT time_of_day,branch,count(rating ) as count_rating
+from sales
+group by time_of_day,branch
+order  by 2 ;
+
+
+-- ----- question 9 --------------------------------------
+SELECT DAYNAME, FORMAT(AVG(rating),2) AS AVERAGE_RATING
+FROM SALES 
+GROUP BY DAYNAME 
+ORDER BY 2 DESC;
+
+
+
+-- ----- question 10 --------------------------------------
+SELECT  branch,DAYNAME, FORMAT(AVG(rating),2) AS AVERAGE_RATING
+FROM SALES 
+GROUP BY DAYNAME,branch
+ORDER BY 2 DESC;
+
+
+select * from sales
+
+
+select product_line,SUM(gross_income) from sales 
+WHERE MONTH_NAME='March'
+ group by product_line 
+ order by 2 desc
+ 
+select product_line,branch,SUM(gross_income) from sales 
+WHERE MONTH_NAME='March'
+group by product_line,branch
+order by 3 desc;
+ 
